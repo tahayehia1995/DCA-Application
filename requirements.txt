@@ -9,10 +9,11 @@ numpy>=1.23.0
 scipy>=1.10.0
 scikit-optimize>=0.9.0
 
-# Machine learning (anomaly detection) - Optional but recommended
-# Note: PyCaret requires Python 3.8-3.11 (not 3.12+)
-# If installation fails, the app will work with window-based detection only
-pycaret>=3.0.0
+# Machine learning (anomaly detection) - OPTIONALLY INSTALL LATER
+# PyCaret is commented out due to installation issues on Streamlit Cloud
+# The app will work with window-based outlier detection instead
+# To enable PyCaret: uncomment the line below and ensure Python 3.8-3.11
+# pycaret>=3.0.0
 
 # Optimization libraries
 pyswarm>=0.6
