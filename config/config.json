@@ -1,0 +1,211 @@
+{
+  "_comment": "Wolfcamp Production Analysis - Configuration File",
+  "_description": "This file contains all parameters for the complete workflow. Adjust values as needed for your analysis.",
+  
+  "project_name": "Wolfcamp Production Analysis",
+  
+  "global_settings": {
+    "_description": "Global settings that apply across all steps",
+    "base_output_directory": "output/",
+    "save_mode": "per_step",
+    "_save_mode_options": ["per_step", "final_only"],
+    "figure_format": "png",
+    "_figure_format_options": ["png", "pdf", "svg"],
+    "figure_dpi": 300,
+    "verbose": true
+  },
+  
+  "step0_preprocessing": {
+    "_description": "Step 0: Data Preprocessing - Handle NaN values, zeros, and generate cumulative production",
+    "enabled": true,
+    "_enabled_description": "Set to false to skip this step entirely",
+    "input_directory": "Original/",
+    "output_directory": "output/step0/",
+    "drop_zeros": true,
+    "_drop_zeros_description": "If true, remove rows with zero production values; if false, keep them",
+    "save_intermediate": true,
+    "_save_intermediate_description": "Save CSV files after this step",
+    "wells_to_process": ["all"],
+    "_wells_to_process_description": "List of well IDs (e.g., ['42-495-33759']) or ['all'] to process all wells"
+  },
+  
+  "step1_noise_removal": {
+    "_description": "Step 1: Noise Removal - Remove outliers using window-based and/or machine learning algorithms",
+    "enabled": true,
+    "_enabled_description": "Set to false to skip this step entirely",
+    "input_directory": "output/step0/",
+    "output_directory": "output/step1/",
+    "use_window": true,
+    "_use_window_description": "Apply window-based outlier detection before ML algorithms",
+    "window_size": 15,
+    "_window_size_description": "Size of rolling window for outlier detection (in data points)",
+    "step_size": 5,
+    "_step_size_description": "Step size for moving window (smaller = more overlap)",
+    "window_method": "lowest_points",
+    "_window_method_options": ["lowest_quantile", "both_quantiles", "lowest_points"],
+    "_window_method_description": "Method for detecting outliers: lowest_quantile (remove Q1), both_quantiles (remove Q1 and Q3), lowest_points (remove N lowest)",
+    "num_lowest_points": 3,
+    "_num_lowest_points_description": "Number of lowest points to remove per window (only for 'lowest_points' method)",
+    "algorithms": ["all"],
+    "_algorithms_options": ["knn", "lof", "abod", "cof", "cluster", "iforest", "all", "window"],
+    "_algorithms_description": "Anomaly detection algorithms to use. 'all' uses ensemble of all algorithms, 'window' uses only window method",
+    "hyperparameters": {
+      "_description": "Hyperparameters for each anomaly detection algorithm",
+      "knn": {
+        "fraction": 0.20,
+        "_fraction_description": "Fraction of data to flag as anomalies",
+        "n_neighbors": 20,
+        "_n_neighbors_description": "Number of neighbors to use"
+      },
+      "lof": {
+        "fraction": 0.20,
+        "n_neighbors": 20
+      },
+      "abod": {
+        "fraction": 0.20,
+        "n_neighbors": 3
+      },
+      "cof": {
+        "fraction": 0.20,
+        "n_neighbors": 3
+      },
+      "cluster": {
+        "fraction": 0.20,
+        "n_clusters": 3,
+        "_n_clusters_description": "Number of clusters for clustering-based detection"
+      },
+      "iforest": {
+        "fraction": 0.20,
+        "n_estimators": 200,
+        "_n_estimators_description": "Number of trees in isolation forest"
+      }
+    },
+    "drop_repeated_files": true,
+    "_drop_repeated_files_description": "Skip files with duplicate well IDs",
+    "save_intermediate": true,
+    "wells_to_process": ["all"],
+    "visualize_wells": ["all"],
+    "_visualize_wells_description": "List of well IDs to generate plots for, or ['all'] for all wells, or [] for none"
+  },
+  
+  "step2_interpolation": {
+    "_description": "Step 2: Interpolation - Fill gaps in time series and identify fitting periods",
+    "enabled": true,
+    "_enabled_description": "Set to false to skip this step entirely",
+    "input_directory": "output/step1/",
+    "output_directory": "output/step2/",
+    "interpolation_method": "linear",
+    "_interpolation_method_options": ["linear", "cubic", "quadratic", "nearest"],
+    "_interpolation_method_description": "Method for interpolating missing time points",
+    "min_fitting_period": 30,
+    "_min_fitting_period_description": "Minimum length (in months) for a valid decline fitting period",
+    "save_intermediate": true,
+    "wells_to_process": ["all"],
+    "visualize_wells": ["all"]
+  },
+  
+  "step3_smoothing": {
+    "_description": "Step 3: Smoothing - Apply various filters to smooth production data",
+    "enabled": true,
+    "_enabled_description": "Set to false to skip this step entirely",
+    "input_directory": "output/step2/",
+    "output_directory": "output/step3/",
+    "filters": ["Gaussian", "Savitzky-Golay", "Spline", "Lowess"],
+    "_filters_options": ["Gaussian", "Savitzky-Golay", "Spline", "Lowess"],
+    "_filters_description": "List of smoothing filters to apply. Results from all filters will be saved in separate columns",
+    "save_intermediate": true,
+    "wells_to_process": ["all"],
+    "visualize_wells": ["all"]
+  },
+  
+  "step4_q_fitting": {
+    "_description": "Step 4: Decline Curve Analysis - Fit DCA models and forecast production",
+    "enabled": true,
+    "_enabled_description": "Set to false to skip this step entirely",
+    "input_directory": "output/step3/",
+    "q_actual_directory": "output/step0/",
+    "_q_actual_directory_description": "Directory containing original q_actual data for EUR calculations",
+    "output_directory": "output/step4/",
+    "forecast_method": 1,
+    "_forecast_method_options": [1, 2],
+    "_forecast_method_description": "1: Forecast to end_time; 2: Forecast until flow rate drops below threshold",
+    "forecast_end_time": 400,
+    "_forecast_end_time_description": "Maximum forecast time in months (method 1 or fallback for method 2)",
+    "forecast_end_flow_rate_gas": 100,
+    "_forecast_end_flow_rate_gas_description": "Minimum flow rate for gas wells (MSCF/D) to stop forecasting (method 2)",
+    "forecast_end_flow_rate_oil": 3,
+    "_forecast_end_flow_rate_oil_description": "Minimum flow rate for oil wells (STB/D) to stop forecasting (method 2)",
+    "fitting_method": 1,
+    "_fitting_method_options": [1, 2, 3, 4, 5],
+    "_fitting_method_description": "1: curve_fit with differential_evolution, 2: dual_annealing, 3: Bayesian (requires scikit-optimize), 4: PSO (requires pyswarm), 5: lmfit",
+    "lmfit_method": "leastsq",
+    "_lmfit_method_options": ["leastsq", "nelder", "powell", "cg", "bfgs", "lbfgsb", "tnc", "cobyla", "slsqp", "differential_evolution"],
+    "_lmfit_method_description": "Optimization method to use with lmfit (only applies if fitting_method = 5)",
+    "models": [
+      "Arps_Hyperbolic",
+      "Logistic_Growth",
+      "Stretched_Exponential",
+      "Power_Law",
+      "Duong",
+      "Wang",
+      "VDMA"
+    ],
+    "_models_description": "List of DCA models to fit. Available: Arps_Hyperbolic, Logistic_Growth, Stretched_Exponential, Power_Law, Duong, Wang, VDMA",
+    "model_bounds": {
+      "_description": "Parameter bounds for each model. Format: [[qi_min, qi_max], [param2_min, param2_max], ...]",
+      "_note": "Bounds are dynamically calculated based on initial qi. Multipliers shown below are applied to qi_initial",
+      "Arps_Hyperbolic": {
+        "_parameters": ["qi", "Di", "b"],
+        "_bounds_description": "qi: [0.5*qi_initial, 5*qi_initial], Di: [0.0001, 0.1], b: [0.0001, 4]"
+      },
+      "Logistic_Growth": {
+        "_parameters": ["qi", "aLGM", "nLGM"],
+        "_bounds_description": "qi: [1000*qi_initial, 15000*qi_initial], aLGM: [10, 1000], nLGM: [0.00001, 1.5]"
+      },
+      "Stretched_Exponential": {
+        "_parameters": ["qi", "tau", "n"],
+        "_bounds_description": "qi: [0.5*qi_initial, 1.5*qi_initial], tau: [0.001, 2], n: [0.001, 2]"
+      },
+      "Power_Law": {
+        "_parameters": ["qi", "Di", "beta"],
+        "_bounds_description": "qi: [0.5*qi_initial, 1.5*qi_initial], Di: [0.0001, 2], beta: [0.0001, 2]"
+      },
+      "Duong": {
+        "_parameters": ["qi", "aD", "mD"],
+        "_bounds_description": "qi: [0.5*qi_initial, 1.5*qi_initial], aD: [0.01, 10], mD: [0.5, 1.5]"
+      },
+      "Wang": {
+        "_parameters": ["qi", "lambda_W"],
+        "_bounds_description": "qi: [0.5*qi_initial, 1.5*qi_initial], lambda_W: [0.0001, 10]"
+      },
+      "VDMA": {
+        "_parameters": ["qi", "Di", "n_VDMA"],
+        "_bounds_description": "qi: [0.5*qi_initial, 1.5*qi_initial], Di: [0.00001, 2], n_VDMA: [0.1, 2]"
+      }
+    },
+    "fitting_percent": 90,
+    "_fitting_percent_description": "Percentage of fitting period data to use (not currently implemented - uses 80/20 split)",
+    "fitting_accuracy_threshold": 90,
+    "_fitting_accuracy_threshold_description": "Minimum adjusted R² (%) required for fitting period to accept model",
+    "prediction_accuracy_threshold": 80,
+    "_prediction_accuracy_threshold_description": "Minimum mean absolute percentage accuracy (%) required on test data",
+    "minimum_production_history": 3,
+    "_minimum_production_history_description": "Minimum number of data points required in training set",
+    "min_peak_rel_height": 0.2,
+    "_min_peak_rel_height_description": "Minimum relative height (0-1) for peak detection in fitting period identification",
+    "lowess_frac": 0.30,
+    "_lowess_frac_description": "Fraction of data to use in LOWESS smoothing for peak detection (0-1)",
+    "min_months": 30,
+    "_min_months_description": "Minimum number of months for a valid fitting period",
+    "save_intermediate": true,
+    "save_summary": true,
+    "_save_summary_description": "If true, saves a comprehensive summary CSV with EUR, model parameters, goodness of fit metrics (MAE, MSE, RMSE, R², adjusted R², mean absolute accuracy), prediction accuracy metrics (same metrics on test data), and P10/P50/P90 statistics for all wells (default: true)",
+    "summary_metrics": ["r_squared"],
+    "_summary_metrics_options": ["mae", "mse", "rmse", "r_squared", "adj_r_squared", "mean_abs_acc"],
+    "_summary_metrics_description": "List of error metrics to include in the summary CSV. Options: mae, mse, rmse, r_squared, adj_r_squared, mean_abs_acc. Metrics are saved for both training (train_*) and test (test_*) data. Default: ['r_squared'] which saves train_adj_r_squared as 'r_squared' column for backward compatibility",
+    "wells_to_process": ["all"],
+    "visualize_wells": ["all"]
+  }
+}
+
+

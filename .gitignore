@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+
+# Output directories
+output/
+*.log
+logs.log
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# OneDrive
+~$*
+
+# Test data (optional - uncomment if you don't want to commit test data)
+# Test_Data/
+
+# Config files with sensitive data (if any)
+# config/secrets.json
+
+# Checksums (optional)
+# file_checksums.txt
+

@@ -1,0 +1,4 @@
+"""
+Streamlit app pages module
+"""
+
