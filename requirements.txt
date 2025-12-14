@@ -1,4 +1,5 @@
 # Wolfcamp Production Analysis - Required Packages
+# Optimized for Streamlit Cloud deployment
 
 # Core data manipulation
 pandas>=1.5.0
@@ -8,7 +9,9 @@ numpy>=1.23.0
 scipy>=1.10.0
 scikit-optimize>=0.9.0
 
-# Machine learning (anomaly detection)
+# Machine learning (anomaly detection) - Optional but recommended
+# Note: PyCaret requires Python 3.8-3.11 (not 3.12+)
+# If installation fails, the app will work with window-based detection only
 pycaret>=3.0.0
 
 # Optimization libraries
@@ -26,19 +29,6 @@ plotly>=5.17.0
 # File handling
 openpyxl>=3.1.0
 
-# Jupyter notebook support
-jupyter>=1.0.0
-ipykernel>=6.0.0
-
 # Streamlit web application framework
 streamlit>=1.28.0
-
-# Optional: Enhanced optimization (uncomment if needed)
-# scikit-optimize>=0.9.0  # For Bayesian optimization
-# pyswarm>=0.6           # For Particle Swarm Optimization
-
-# Development tools (optional)
-# black>=23.0.0          # Code formatting
-# flake8>=6.0.0          # Linting
-# pytest>=7.0.0          # Testing
 
