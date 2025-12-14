@@ -1,3 +1,0 @@
-# System packages required for Streamlit Cloud deployment
-# Leave empty if no system packages are needed
-
